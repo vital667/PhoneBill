@@ -19,6 +19,10 @@ public class Main {
 
         List<Bill> bills = new LinkedList<>();
 
+        int shortCallPrice = 3;
+        int longCallPrice = 150;
+        int priceToPay = 0;
+
         try {
 
             br = new BufferedReader(new FileReader(billFile));
@@ -30,9 +34,7 @@ public class Main {
                 if (phone[0].startsWith("„")) phone[0] = phone[0].substring(1);
                 if (phone[1].endsWith("”")) phone[1] = phone[1].substring(0, phone[1].length() - 1);
                 //System.out.println("time=" + phone[0] + ", phone=" + phone[1] + "]");
-
                 bills.add(new Bill(phone[0], phone[1]));
-
             }
 
         } catch (FileNotFoundException e) {
@@ -53,6 +55,7 @@ public class Main {
 
         Map<String, Integer> map = new HashMap<>();
 
+        //calculate time in Seconds for every Phone Number and put data to map
         for (Bill i : bills)
             if (!map.containsKey(i.getPhone())) map.put(i.getPhone(), calculateTimeInSecunds(i.getTime()));
             else map.put(i.getPhone(), map.get(i.getPhone()) + calculateTimeInSecunds(i.getTime()));
@@ -61,6 +64,7 @@ public class Main {
         int max = 0;
         String temp = "";
 
+        //find phone number with the biggest amount of seconds
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
             //System.out.println("phone = " + entry.getKey() + ";   overall time = " + entry.getValue());
             if (entry.getValue() > max) {
@@ -69,22 +73,23 @@ public class Main {
             }
         }
 
-        //System.out.println("Map to calcuate:");
+        //remove phone number with the biggest amount of seconds
         map.remove(temp);
+        //System.out.println("Map to calculate:");
 
-        int price=0;
-
-
+        //calculate PriceToPay
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
-           // System.out.println("phone = " + entry.getKey() + ";   overall time = " + entry.getValue());
-            if (entry.getValue()>300) price+=entry.getValue()/5*150;
-            else price+=entry.getValue()*3;
+            // System.out.println("phone = " + entry.getKey() + ";   overall time = " + entry.getValue());
+            if (entry.getValue() > 300) priceToPay +=
+                    entry.getValue() % 60 == 0
+                            ? (entry.getValue() / 60) * longCallPrice
+                            : (entry.getValue() / 60 + 1) * longCallPrice;
+            else priceToPay += entry.getValue() * shortCallPrice;
         }
 
-        System.out.println("You should pay: "+price/100+"$ "+ (price%100)+" cents");
-
-
+        System.out.println("You should pay: " + priceToPay / 100 + "$ " + (priceToPay % 100) + " cents");
     }
+
 
     public static int calculateTimeInSecunds(String s) {
         LocalTime time = LocalTime.parse(s);
